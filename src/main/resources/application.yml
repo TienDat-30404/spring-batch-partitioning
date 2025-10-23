@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: spring-batch-demo
+  
+  datasource:
+    url: jdbc:h2:mem:batchdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false  # Không tự động chạy job khi khởi động
+
+# Batch Configuration
+batch:
+  chunk-size: 10000
+  partition-size: 4
+  input-file: data/input/customers.csv
+  output-table: customer
+  
+# Logging
+logging:
+  level:
+    org.springframework.batch: DEBUG
+    com.demo: DEBUG
+
+server:
+  port: 8080
