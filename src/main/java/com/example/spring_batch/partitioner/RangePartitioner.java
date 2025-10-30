@@ -23,8 +23,8 @@ public class RangePartitioner implements Partitioner {
 
         try {
             long totalLines = countLines();
-            log.info("📊 Total lines in file: {}", totalLines);
-
+            System.out.println("totalLinesssssssssssssssssssssssssssssssssssssssssss" + totalLines);
+            System.out.println("22222222222222222222222222222222222222222222222222222222222222222222222222222222222222");
             long linesPerPartition = totalLines / gridSize;
             long remainder = totalLines % gridSize;
 
@@ -35,7 +35,7 @@ public class RangePartitioner implements Partitioner {
 
                 long fromLine = currentLine;
                 long toLine = currentLine + linesPerPartition + (i < remainder ? 1 : 0);
-                
+
                 context.putLong("fromLine", fromLine);
                 context.putLong("toLine", toLine);
                 context.putString("partitionName", "partition" + i);

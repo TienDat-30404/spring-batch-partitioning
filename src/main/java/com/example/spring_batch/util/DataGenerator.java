@@ -138,8 +138,8 @@ public class DataGenerator {
         }
         
         // Bạn có thể thay đổi số lượng records ở đây
-        int numberOfRecords = 10; // 1 triệu records
-        // int numberOfRecords = 100000; // 100k records để test nhanh
+        // int numberOfRecords = 10; // 1 triệu records
+        int numberOfRecords = 100; // 100k records để test nhanh
         
         generateFile(outputPath, numberOfRecords);
         

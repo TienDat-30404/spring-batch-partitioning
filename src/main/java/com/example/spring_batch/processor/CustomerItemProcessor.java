@@ -27,8 +27,11 @@ public class CustomerItemProcessor implements ItemProcessor<Customer, Customer> 
 
         // Validate dữ liệu
         if (customer.getFirstName() == null || customer.getFirstName().trim().isEmpty()) {
-            log.warn("⚠️ Skipping customer with empty firstName: {}", customer.getId());
-            return null; // Skip bản ghi này
+            // log.warn("⚠️ Skipping customer with empty firstName: {}", customer.getId());
+            // return null; // Skip bản ghi này
+
+            log.error("⚠️ Invalid field for customer: {}", customer.getId());
+            throw new IllegalArgumentException("First name is missing or empty for ID: " + customer.getId());
         }
 
         if (customer.getEmail() == null || !customer.getEmail().contains("@")) {

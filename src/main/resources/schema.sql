@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS customer (
+CREATE TABLE IF NOT EXISTS CUSTOMER (
     id BIGINT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS customer (
     processed_by VARCHAR(50)
 );
 
-CREATE INDEX idx_customer_email ON customer(email);
-CREATE INDEX idx_customer_status ON customer(status);
+CREATE INDEX idx_customer_email ON CUSTOMER(email);
+CREATE INDEX idx_customer_status ON CUSTOMER(status);

@@ -93,11 +93,17 @@ public class BatchConfiguration {
     @Bean
     public JdbcBatchItemWriter<Customer> customerWriter() {
         // SỬA: Loại bỏ date_of_birth và created_date khỏi tên cột và giá trị
-        String sql = "INSERT INTO customer " +
-                "(id, first_name, last_name, email, phone, address, city, country, " +
-                "account_balance, status, processed_by) " +
-                "VALUES (:id, :firstName, :lastName, :email, :phone, :address, :city, :country, " +
-                ":accountBalance, :status, :processedBy)";
+        // String sql = "INSERT INTO customer " +
+        //         "(id, first_name, last_name, email, phone, address, city, country, " +
+        //         "account_balance, status, processed_by) " +
+        //         "VALUES (:id, :firstName, :lastName, :email, :phone, :address, :city, :country, " +
+        //         ":accountBalance, :status, :processedBy)";
+
+        String sql = "MERGE INTO customer (id, first_name, last_name, email, phone, address, city, country, " +
+                 "account_balance, status, processed_by) " +
+                 "KEY (id) " + // <<< Cột khóa duy nhất (Primary Key)
+                 "VALUES (:id, :firstName, :lastName, :email, :phone, :address, :city, :country, " +
+                 ":accountBalance, :status, :processedBy)";
 
         return new JdbcBatchItemWriterBuilder<Customer>()
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
@@ -118,7 +124,7 @@ public class BatchConfiguration {
                 .writer(customerWriter())
                 .faultTolerant()
                 .skip(Exception.class)
-                .skipLimit(2)
+                .skipLimit(3)
                 .build();
     }
 
