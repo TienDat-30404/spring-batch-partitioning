@@ -1,0 +1,11 @@
+id,firstName,lastName,email,phone,address,city,country,accountBalance
+1,Do,Johnson,do.johnson1@example.com,0612598063,1 Street 57 District 3,Tokyo,USA,60988.27
+2,,Van,.van2@gmail.com,0826412690,2 Street 36 District 9,New York,Singapore,157547.34
+3,Le,Davis,le.davis3@gmail.com,0553331634,3 Street 58 District 9,Singapore,USA,118722.88
+4,Hoang,Huy,hoang.huy4@example.com,0115676114,4 Street 9 District 7,Seoul,Thailand,151600.33
+5,Ly,Garcia,ly.garcia5@gmail.com,0652237336,5 Street 83 District 3,Can Tho,USA,22477.15
+6,Phan,Johnson,phan.johnson6@example.com,0338072635,6 Street 22 District 5,Ho Chi Minh,Thailand,40157.21
+7,Pham,Smith,pham.smith7@example.com,0237387732,7 Street 91 District 8,Da Nang,Korea,101830.15
+8,Le,Linh,le.linh8@example.com,0848995690,8 Street 95 District 9,Singapore,Singapore,143728.61
+9,Phan,Tuan,phan.tuan9@gmail.com,0282804945,9 Street 73 District 10,New York,Vietnam,162500.60
+10,Do,Huy,do.huy10@gmail.com,0989121845,10 Street 43 District 11,Singapore,UK,99131.09

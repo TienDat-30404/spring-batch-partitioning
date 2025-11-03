@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # 1. Database - PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: spring-batch-db
+    environment:
+      POSTGRES_DB: dataflow
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5437:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d dataflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scdf-network
+
+  # 2. Message Broker - RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: scdf-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - scdf-network
+
+  # 3. Spring Cloud Skipper Server
+  skipper-server:
+    user: root
+    image: springcloud/spring-cloud-skipper-server:2.11.3-SNAPSHOT
+    container_name: skipper-server
+    ports:
+      - "7577:7577"
+    environment:
+      - SERVER_PORT=7577
+      # === CẤU HÌNH DB ===
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/dataflow
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      # ==========================
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SKIPPER_SERVER_DEPLOYER=ERROR
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    # Loại bỏ Volume Mounts không cần thiết
+    networks:
+      - scdf-network
+
+  # 4. Spring Cloud Data Flow Server (Đã loại bỏ chia sẻ Docker Socket và cấu hình Local Deployment)
+  dataflow-server:
+    user: root
+    # image: springcloud/spring-cloud-dataflow-server-docker:2.11.3-SNAPSHOT
+    build:
+      context: ./docker-cli 
+      dockerfile: Dockerfile
+    container_name: dataflow-server
+    ports:
+      - "9393:9393"
+    environment:
+      - SPRING_FLYWAY_BASELINE_ON_MIGRATE=true
+      - SPRING_FLYWAY_BASELINE_VERSION=1
+      - SPRING_CLOUD_DATAFLOW_SERVER_INITIALIZE_ENABLED=false
+      # === CẤU HÌNH DB & BROKER ===
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/dataflow
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      # ==================================
+      - SPRING_CLOUD_SKIPPER_CLIENT_SERVER_URI=${SKIPPER_URI:-http://skipper-server:7577}/api
+
+      # CẤU HÌNH CHO TASK/BATCH METADATA
+      - SPRING_CLOUD_TASK_EXECUTION_TABLE_PREFIX=boot3_task_
+      - SPRING_CLOUD_BATCH_JOB_EXECUTION_TABLE_PREFIX=boot3_batch_
+      
+      # !!! CẤU HÌNH QUAN TRỌNG NHẤT: SỬ DỤNG 'DOCKER' TYPE ĐỂ KÉO IMAGE TỪ DOCKER HUB
+      - SPRING_CLOUD_DATAFLOW_TASK_PLATFORM_LOCAL_ACCOUNTS[default].type=docker
+      # Đảm bảo Docker luôn Pull image mới nhất
+      - SPRING_CLOUD_DATAFLOW_TASK_PLATFORM_LOCAL_ACCOUNTS[default].docker.containerImagePullPolicy=Always
+
+      - SPRING_CLOUD_DEPLOYER_DOCKER_USERNAME=username_cua_docker_hub  # Tên đăng nhập Docker Hub của bạn
+      - SPRING_CLOUD_DEPLOYER_DOCKER_PASSWORD=token_cua_docker_hub
+      - SPRING_CLOUD_DEPLOYER_DOCKER_REGISTRY_AUTH_URI=https://index.docker.io/v1/ # (Nên thêm vào)
+      - SPRING_CLOUD_DEPLOYER_LOCAL_DOCKER_NETWORK=scdf-network
+      - SPRING_CLOUD_DEPLOYER_LOCAL_DOCKER_ENVIRONMENT_VARIABLES=SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/dataflow,SPRING_DATASOURCE_USERNAME=user,SPRING_DATASOURCE_PASSWORD=password,SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+    depends_on:
+      skipper-server:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started # Thêm RabbitMQ vào depends_on
+
+    # !!! LOẠI BỎ CHIA SẺ DOCKER SOCKET VÀ VOLUME MOUNT KHÔNG CẦN THIẾT
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOST_MOUNT_PATH:-.}:${DOCKER_MOUNT_PATH:-/home/cnb/scdf}
+    
+    networks:
+      - scdf-network
+
+  # 5. Services nhập ứng dụng mẫu (Giữ nguyên)
+  app-import-task:
+    image: springcloud/baseimage:1.0.4
+    container_name: dataflow-app-import-task
+    depends_on:
+      - dataflow-server
+    networks:
+      - scdf-network # Thêm network
+    # command: >
+    #   /bin/sh -c "
+    #     ./wait-for-it.sh -t 360 dataflow-server:9393;
+    #     wget -qO- '${DATAFLOW_URI:-http://dataflow-server:9393}/apps' --no-check-certificate --post-data='uri=${TASK_APPS_URI:-https://dataflow.spring.io/task-maven-3-0-x&force=true}';
+    #     echo 'Maven Task apps imported'"
+
+
+networks:
+  scdf-network:
+    driver: bridge

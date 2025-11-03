@@ -1,0 +1,15 @@
+SELECT * FROM BATCH_JOB_INSTANCE;
+SELECT * FROM BATCH_JOB_EXECUTION;
+SELECT * FROM BATCH_STEP_EXECUTION;
+
+-- Xem bảng dữ liệu khách hàng sau khi Job chạy xong
+SELECT COUNT(*) FROM CUSTOMER;
+
+
+
+
+
+mvn exec:java '-Dexec.mainClass=com.example.spring_batch.util.DataGenerator'
+
+
+
